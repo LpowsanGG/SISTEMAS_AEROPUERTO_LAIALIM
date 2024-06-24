@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Pasajeros</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section h2 {
+            background-color: #f0f0f0;
+            padding: 10px;
+        }
+        .section form {
+            display: flex;
+            flex-direction: column;
+        }
+        .section form input, .section form select {
+            margin-bottom: 10px;
+            padding: 8px;
+            font-size: 16px;
+        }
+        .section form button {
+            padding: 10px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .section form button:hover {
+            background-color: #0056b3;
+        }
+        .admin-section {
+            display: none;
+        }
+    </style>
+    <!-- Include Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js"></script>
+</head>
+<body>
+    <div class="section">
+        <h2>Agregar Pasajero</h2>
+        <form id="pasajeroForm">
+            <label for="nombre">Nombre del Pasajero:</label>
+            <input type="text" id="nombre" name="nombre" required>
+
+            <label for="codigoVuelo">Código de Vuelo:</label>
+            <input type="text" id="codigoVuelo" name="codigoVuelo" required>
+
+            <label for="aerolinea">Aerolínea:</label>
+            <select id="aerolinea" name="aerolinea" required>
+                <option value="Latam Airlines">Latam Airlines</option>
+                <option value="Iberia">Iberia</option>
+                <option value="KLM">KLM</option>
+                <option value="AirFrance">AirFrance</option>
+                <option value="AirEuropa">AirEuropa</option>
+                <option value="Emirates">Emirates</option>
+                <option value="Japan Airlines">Japan Airlines</option>
+                <option value="Qatar Airways">Qatar Airways</option>
+                <option value="Signature Airlines">Signature Airlines</option>
+            </select>
+
+            <button type="submit">Registrar Pasajero</button>
+        </form>
+    </div>
+
+    <div class="section">
+        <h2>Búsqueda</h2>
+        <input type="text" id="buscarPasajero" placeholder="Buscar pasajero...">
+        <ul id="resultadosBusqueda"></ul>
+    </div>
+
+    <div class="section">
+        <h2>Ver Vuelos</h2>
+        <ul id="listaVuelos"></ul>
+    </div>
+
+    <div class="section">
+        <h2>ADMINISTRACIÓN</h2>
+        <form id="adminForm">
+            <label for="adminPassword">Contraseña:</label>
+            <input type="password" id="adminPassword" name="adminPassword" required>
+            <button type="submit">Ingresar</button>
+        </form>
+    </div>
+
+    <div class="section admin-section" id="adminSection">
+        <h2>Agregar Vuelo</h2>
+        <form id="agregarVueloForm">
+            <label for="numeroVuelo">Número de Vuelo:</label>
+            <input type="text" id="numeroVuelo" name="numeroVuelo" required>
+
+            <label for="aerolineaVuelo">Aerolínea:</label>
+            <input type="text" id="aerolineaVuelo" name="aerolineaVuelo" required>
+
+            <label for="hora">Hora:</label>
+            <input type="time" id="hora" name="hora" required>
+
+            <label for="fecha">Fecha:</label>
+            <input type="date" id="fecha" name="fecha" required>
+
+            <label for="terminal">Terminal:</label>
+            <input type="text" id="terminal" name="terminal" required>
+
+            <label for="puerta">Puerta de Embarque:</label>
+            <input type="text" id="puerta" name="puerta" required>
+
+            <button type="submit">Agregar Vuelo</button>
+        </form>
+    </div>
+
+    <script>
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            databaseURL: "YOUR_DATABASE_URL"
+        };
+
+        // Inicializar Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const adminPassword = "LASEMPRESASAIRPORT2024";
+
+        // Registrar Pasajero
+        document.getElementById('pasajeroForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nombre = document.getElementById('nombre').value;
+            const codigoVuelo = document.getElementById('codigoVuelo').value;
+            const aerolinea = document.getElementById('aerolinea').value;
+
+            const newPassengerKey = db.ref().child('passengers').push().key;
+            db.ref('passengers/' + newPassengerKey).set({
+                nombre: nombre,
+                codigoVuelo: codigoVuelo,
+                aerolinea: aerolinea
+            });
+
+            alert('Pasajero registrado.');
+            this.reset();
+        });
+
+        // Autenticación de Administrador
+        document.getElementById('adminForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const password = document.getElementById('adminPassword').value;
+            if (password === adminPassword) {
+                document.getElementById('adminSection').style.display = 'block';
+                alert('Acceso concedido.');
+            } else {
+                alert('Contraseña incorrecta.');
+            }
+        });
+
+        // Agregar Vuelo
+        document.getElementById('agregarVueloForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const numeroVuelo = document.getElementById('numeroVuelo').value;
+            const aerolineaVuelo = document.getElementById('aerolineaVuelo').value;
+            const hora = document.getElementById('hora').value;
+            const fecha = document.getElementById('fecha').value;
+            const terminal = document.getElementById('terminal').value;
+            const puerta = document.getElementById('puerta').value;
+
+            const newFlightKey = db.ref().child('flights').push().key;
+            db.ref('flights/' + newFlightKey).set({
+                numeroVuelo: numeroVuelo,
+                aerolineaVuelo: aerolineaVuelo,
+                hora: hora,
+                fecha: fecha,
+                terminal: terminal,
+                puerta: puerta
+            });
+
+            alert('Vuelo agregado correctamente.');
+            this.reset();
+        });
+
+        // Buscar Pasajero
+        document.getElementById('buscarPasajero').addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            const resultados = document.getElementById('resultadosBusqueda');
+            resultados.innerHTML = '';
+
+            db.ref('passengers').once('value', function(snapshot) {
+                snapshot.forEach(function(childSnapshot) {
+                    const pasajero = childSnapshot.val();
+                    if (pasajero.nombre.toLowerCase().includes(query)) {
+                        const li = document.createElement('li');
+                        li.textContent = `Nombre: ${pasajero.nombre}, Código de Vuelo: ${pasajero.codigoVuelo}, Aerolínea: ${pasajero.aerolinea}`;
+                        resultados.appendChild(li);
+                    }
+                });
+
+                if (!resultados.hasChildNodes() && query) {
+                    const li = document.createElement('li');
+                    li.textContent = 'No se encontraron pasajeros.';
+                    resultados.appendChild(li);
+                }
+            });
+        });
+
+        // Mostrar Vuelos
+        db.ref('flights').on('value', function(snapshot) {
+            const listaVuelos = document.getElementById('listaVuelos');
+            listaVuelos.innerHTML = '';
+            snapshot.forEach(function(childSnapshot) {
+                const vuelo = childSnapshot.val();
+                const li = document.createElement('li');
+                li.textContent = `${vuelo.numeroVuelo} - ${vuelo.aerolineaVuelo} - ${vuelo.fecha}
